@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Example</title>
+</head>
+<body>
+
+    <h1>Notifier example</h1>
+
+    <!-- Change the user ID as needed -->
+    <div id="sse-data">
+        <input type="text" id="user-name">User name</input>
+        <p>
+        <input type="button" onclick="establishSseConnection(document.getElementById('user-name').value)">Subscribe</input>
+        </p>
+    </div>
+
+    <script>
+        let eventSource;
+
+        function establishSseConnection(userId) {
+            eventSource = new EventSource(`/notification/subscribe/${userId}`);
+
+            eventSource.onmessage = function(event) {
+                const sseData = document.getElementById("sse-data");
+                sseData.innerHTML += `<p>${event.data}</p>`;
+            };
+            
+            eventSource.onerror = function (error) {
+                console.error("Error with SSE connection:", error);
+                if (error.eventPhase === EventSource.CLOSED) {
+                    console.log("SSE connection closed by the server");
+                    setTimeout(() => establishSseConnection(userId), 10000);
+                } else {
+                    console.log("Other SSE connection error");
+                    // Attempt to reconnect (customize as needed)
+                    setTimeout(() => establishSseConnection(userId), 10000); // Retry after 5 seconds
+                }
+            };
+           
+            
+        
+        }
+
+        // Change the user ID as needed
+        const userId = document.getElementById("sse-data").getAttribute("data-user-id");
+
+        // Establish SSE connection on page load
+        //establishSseConnection(userId);
+    </script>
+
+</body>
+</html>
